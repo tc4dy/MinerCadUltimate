@@ -1274,7 +1274,7 @@ class MinerCad:
   ██║ ╚═╝ ██║██║██║ ╚████║███████╗██║  ██║╚██████╗██║  ██║██████╔╝
   ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═════╝ 
 \033[0m
-\033[1;33m            ULTIMATE TACTICAL RECONNAISSANCE FRAMEWORK\033[0m
+\033[1;33m            RECONNAISSANCE FRAMEWORK\033[0m
 \033[1;32m            Version 4.0.0 - MinerCad Ultimate\033[0m
 \033[1;31m            Developed by @tc4dy - Educational and Research Tool\033[0m
 \033[1;35m{'=' * 100}\033[0m
