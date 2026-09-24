@@ -1,58 +1,87 @@
-## [EN] English: The Ultimate Intelligence Engine
-**MinerCad Ultimate** is an industrial-grade reconnaissance framework designed for comprehensive digital asset discovery. Spanning nearly 1700 lines of optimized Python code, it provides an unparalleled deep-scan experience for security professionals.
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![Crawler](https://img.shields.io/badge/Crawler-Web%20Traversal-blue)
+![OSINT](https://img.shields.io/badge/OSINT-Intelligence-red)
+![Recon](https://img.shields.io/badge/Recon-Recognition-purple)
 
-### Core Capabilities
-* **⚡ Ultra-High Speed:** Powered by `ThreadPoolExecutor` for asynchronous networking and simultaneous URL parsing.
-* **🔍 80+ Deep Scan Categories:** Automated extraction of AWS/Google keys, JWT tokens, SSH private keys, and sensitive configuration files (.env, .sql, .conf).
-* **🏗️ Infrastructure Profiling:** Advanced fingerprinting for technologies like Nginx, Docker, WordPress, and React.
-* **📊 Professional Output:** Generate structured intelligence reports in HTML (with UI), XML, JSON, or TXT formats including full session statistics.
-* **🌍 Bilingual Tactical CLI:** Features a dynamic command-line interface with full English and Turkish support.
+# MinerCad Recon & Osint Tool
 
----
+A modular reconnaissance framework for security research and digital asset discovery.
 
-## Türkçe: Profesyonel İstihbarat Motoru
-**MinerCad Ultimate**, kapsamlı dijital varlık keşfi için tasarlanmış endüstriyel seviyede bir keşif framework'üdür. 1700 satıra yakın optimize edilmiş Python koduyla, güvenlik profesyonellerine benzersiz bir derin tarama deneyimi sunar.
-
-### 🔥 Temel Yetenekler
-* **⚡ Ultra Yüksek Hız:** Asenkron ağ işlemleri ve eşzamanlı URL analizi için `ThreadPoolExecutor` altyapısı.
-* **🔍 80+ Derin Tarama Kategorisi:** AWS/Google anahtarları, JWT tokenları, SSH özel anahtarları ve hassas konfigürasyon dosyalarının (.env, .sql, .conf) otomatik çıkarımı.
-* **🏗️ Altyapı Profilleme:** Nginx, Docker, WordPress ve React gibi teknolojiler için gelişmiş parmak izi tespiti.
-* **📊 Profesyonel Çıktı:** Tam oturum istatistiklerini içeren HTML (arayüzlü), XML, JSON veya TXT formatlarında yapılandırılmış istihbarat raporları oluşturun.
-* **🌍 Çift Dilli Taktiksel CLI:** Tam İngilizce ve Türkçe desteğine sahip dinamik komut satırı arayüzü.
+MinerCad performs automated information gathering against a target domain, covering DNS, WHOIS, TLS certificates, open ports, subdomains, HTTP crawling, and content pattern extraction. Findings are consolidated into structured reports (HTML, XML, JSON).
 
 ---
 
-## Setup & Usage / Kurulum ve Kullanım
+## Capabilities
 
-### 1. Requirements / Bağımlılıklar
-# Install all necessary modules / Gerekli tüm modülleri yükleyin:
-pip install requests beautifulsoup4 dnspython python-whois urllib3 colorama
+- **DNS enumeration** – A, AAAA, MX, NS, TXT, CNAME and SOA record lookups.
+- **WHOIS lookup** – registrar, dates, name servers, and registered contact emails.
+- **TLS analysis** – protocol version, cipher, certificate subject, issuer and SANs.
+- **Port scanning** – parallel TCP connect scan across 20 common service ports.
+- **Subdomain brute force** – dictionary-based resolution using a curated wordlist.
+- **Web crawling** – breadth-first traversal with configurable depth and concurrency.
+- **Pattern extraction** – API keys, cloud credentials, tokens, internal IPs, config and backup files, API endpoints and technology fingerprints.
+- **Security headers audit** – presence and absence of HSTS, CSP, XFO, XCTO, and related headers.
+- **WAF detection** – heuristic fingerprinting of common web application firewalls.
+- **JavaScript analysis** – extraction of API endpoints, secrets and function names from linked scripts.
 
-### 2. Launch / Çalıştır
-# Start the MinerCad Engine / MinerCad motorunu başlatın:
+---
+
+## Output Formats
+
+| Format | Description |
+| :--- | :--- |
+| JSON | Structured report suitable for downstream tooling and pipelines. |
+| HTML | Self-contained visual report for review and sharing. |
+| XML  | Machine-readable report for SIEM and integration workflows. |
+
+Statistics for every scan (categories, data points, coverage) are printed to the console and included in exports.
+
+---
+
+## Requirements
+
+Python 3.8 or later.
+
+```bash
+pip install requests beautifulsoup4 dnspython python-whois urllib3
+```
+
+### Usage
+
+```bash
+pip install -r requirements.txt
 python minercad.py
+```
 
-### 3. Workflow / İş Akışı
-1. **Language Selection / Dil Seçimi:** Choose EN or TR interface.
-2. **Target Entry / Hedef Girişi:** Provide domain (e.g., `example.com`).
-3. **Execution / Uygulama:** Set Scan Depth (1-5) and Thread Count (1-20).
-4. **Export / Dışa Aktar:** Choose report format (HTML, XML, JSON, TXT) and review statistics.
+Workflow:
+
+1. Enter the target domain (e.g. `example.com`).
+2. The scanner runs DNS, WHOIS, TLS, port, subdomain, crawl and JS analysis stages sequentially.
+3. Review the console report.
+4. Export the findings as JSON, HTML or XML, or print scan statistics.
+
+The interactive menu after the scan accepts:
+
+[1] New scan   [2] JSON   [3] HTML   [4] XML   [5] Stats   [6] Exit
 
 ---
 
-## Edition Comparison / Sürüm Karşılaştırması
+## Configuration
 
-| Feature / Özellik | MinerCad Normal (v3.0) | MinerCad Ultimate (v4.0) |
+Scan parameters are defined in the `Config` class at the top of `minercad.py`:
+
+| Parameter | Default | Description |
 | :--- | :--- | :--- |
-| **Lines / Satır** | ~400 Lines | ~1700 Lines |
-| **Categories / Kategori** | ~15 Core Items | 80+ Deep OSINT Categories |
-| **Reporting / Raporlar** | JSON, TXT | HTML, XML, JSON, TXT + Stats |
-| **Scanner / Tarayıcı** | Basic Threading | AI-Powered Deep Search Engine |
+| `DEPTH` | 4 | Maximum crawl depth. |
+| `THREADS` | 15 | Concurrent workers for crawling and scanning. |
+| `TIMEOUT` | 12 | HTTP timeout in seconds. |
+| `RATE_LIMIT` | 0.1 | Delay between HTTP requests in seconds. |
+| `MAX_LINKS_PER_LEVEL` | 100 | Cap on discovered URLs per crawl level. |
+| `COMMON_PORTS` | 20 ports | Ports targeted during the scan. |
 
 ---
 
-## Legal Disclaimer / Yasal Uyarı
-This tool is strictly for authorized security research and educational purposes. The developer (@tc4dy) is not responsible for any misuse.
-Bu araç kesinlikle yetkili güvenlik araştırmaları ve eğitim amaçlıdır. Geliştirici (@tc4dy) kötüye kullanımdan sorumlu tutulamaz.
+# Legal Notice
 
-**Developed by [@tc4dy](https://github.com/tc4dy)** 
+This tool is intended for authorized security testing, research, and educational use only. Do not run it against systems you do not own or do not have explicit written permission to test. The author assumes no liability for misuse or damage caused by this software.
+
