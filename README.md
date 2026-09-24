@@ -1,7 +1,7 @@
-## 🌎 [EN] English: The Ultimate Intelligence Engine
+## [EN] English: The Ultimate Intelligence Engine
 **MinerCad Ultimate** is an industrial-grade reconnaissance framework designed for comprehensive digital asset discovery. Spanning nearly 1700 lines of optimized Python code, it provides an unparalleled deep-scan experience for security professionals.
 
-### 🔥 Core Capabilities
+### Core Capabilities
 * **⚡ Ultra-High Speed:** Powered by `ThreadPoolExecutor` for asynchronous networking and simultaneous URL parsing.
 * **🔍 80+ Deep Scan Categories:** Automated extraction of AWS/Google keys, JWT tokens, SSH private keys, and sensitive configuration files (.env, .sql, .conf).
 * **🏗️ Infrastructure Profiling:** Advanced fingerprinting for technologies like Nginx, Docker, WordPress, and React.
@@ -10,7 +10,7 @@
 
 ---
 
-## 🇹🇷 Türkçe: Profesyonel İstihbarat Motoru
+## Türkçe: Profesyonel İstihbarat Motoru
 **MinerCad Ultimate**, kapsamlı dijital varlık keşfi için tasarlanmış endüstriyel seviyede bir keşif framework'üdür. 1700 satıra yakın optimize edilmiş Python koduyla, güvenlik profesyonellerine benzersiz bir derin tarama deneyimi sunar.
 
 ### 🔥 Temel Yetenekler
@@ -22,7 +22,7 @@
 
 ---
 
-## 🛠️ Setup & Usage / Kurulum ve Kullanım
+## Setup & Usage / Kurulum ve Kullanım
 
 ### 1. Requirements / Bağımlılıklar
 # Install all necessary modules / Gerekli tüm modülleri yükleyin:
@@ -40,7 +40,7 @@ python minercad.py
 
 ---
 
-## 📦 Edition Comparison / Sürüm Karşılaştırması
+## Edition Comparison / Sürüm Karşılaştırması
 
 | Feature / Özellik | MinerCad Normal (v3.0) | MinerCad Ultimate (v4.0) |
 | :--- | :--- | :--- |
@@ -51,8 +51,8 @@ python minercad.py
 
 ---
 
-## ⚖️ Legal Disclaimer / Yasal Uyarı
-[EN] This tool is strictly for authorized security research and educational purposes. The developer (@tc4dy) is not responsible for any misuse.
-[🇹🇷] Bu araç kesinlikle yetkili güvenlik araştırmaları ve eğitim amaçlıdır. Geliştirici (@tc4dy) kötüye kullanımdan sorumlu tutulamaz.
+## Legal Disclaimer / Yasal Uyarı
+This tool is strictly for authorized security research and educational purposes. The developer (@tc4dy) is not responsible for any misuse.
+Bu araç kesinlikle yetkili güvenlik araştırmaları ve eğitim amaçlıdır. Geliştirici (@tc4dy) kötüye kullanımdan sorumlu tutulamaz.
 
 **Developed by [@tc4dy](https://github.com/tc4dy)** 
