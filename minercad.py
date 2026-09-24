@@ -1,5 +1,3 @@
-# Developed by @tc4dy - Educational and Research Tool
-
 import re
 import sys
 import os
@@ -60,10 +58,10 @@ class LanguageManager:
             'exported': ('Exported:', 'Aktarıldı:'),
             'stats': ('DEEP SCAN STATISTICS', 'DERİN TARAMA İSTATİSTİKLERİ'),
         }
-    
+
     def set_language(self, choice):
         self.lang = 'en' if choice == 1 else 'tr'
-    
+
     def get(self, key):
         return self.translations.get(key, (key, key))[0 if self.lang == 'en' else 1]
 
@@ -182,7 +180,7 @@ class PatternExtractor:
             'hash_sha1': re.compile(r'\b[a-fA-F0-9]{40}\b'),
             'hash_sha256': re.compile(r'\b[a-fA-F0-9]{64}\b'),
         }
-        
+
         self.file_extensions = {
             'documents': ['.pdf', '.docx', '.xlsx', '.xls', '.doc', '.ppt', '.pptx', '.odt', '.ods', '.odp'],
             'databases': ['.sql', '.db', '.sqlite', '.sqlite3', '.mdb', '.accdb', '.bkp', '.dump', '.dbf'],
@@ -200,7 +198,7 @@ class PatternExtractor:
             'logs': ['.log', '.txt', '.out'],
             'backups': ['.bak', '.old', '.backup', '.~'],
         }
-        
+
         self.technologies = {
             'WordPress': ['wp-content', 'wp-includes', 'wp-admin', 'wordpress', '/wp-json/'],
             'Joomla': ['joomla', 'components/com_', '/administrator/', 'option=com_'],
@@ -256,10 +254,10 @@ class PatternExtractor:
             'Java': ['.jsp', '.do', 'jsessionid'],
             'Perl': ['.pl', '.cgi'],
         }
-    
+
     def extract_all(self, content, base_domain):
         results = defaultdict(set)
-        
+
         for name, pattern in self.patterns.items():
             try:
                 matches = pattern.findall(content.lower() if name in ['sql_error', 'xss_vulnerable', 'lfi_vulnerable'] else content)
@@ -272,18 +270,18 @@ class PatternExtractor:
                 results[name].update(matches)
             except:
                 pass
-        
+
         for category, extensions in self.file_extensions.items():
             for ext in extensions:
                 if ext in content.lower():
                     pattern = re.compile(rf'https?://[^\s<>"\']+{re.escape(ext)}', re.IGNORECASE)
                     files = pattern.findall(content)
                     results[f'files_{category}'].update(files)
-        
+
         for tech, signatures in self.technologies.items():
             if any(sig.lower() in content.lower() for sig in signatures):
                 results['technologies'].add(tech)
-        
+
         return results
 
 class DNSEnumerator:
@@ -291,7 +289,7 @@ class DNSEnumerator:
         self.resolver = dns.resolver.Resolver()
         self.resolver.timeout = 3
         self.resolver.lifetime = 3
-    
+
     def enumerate(self, domain):
         results = {
             'dns_a': set(),
@@ -302,7 +300,7 @@ class DNSEnumerator:
             'dns_cname': set(),
             'dns_soa': set(),
         }
-        
+
         record_types = {
             'A': 'dns_a',
             'AAAA': 'dns_aaaa',
@@ -312,7 +310,7 @@ class DNSEnumerator:
             'CNAME': 'dns_cname',
             'SOA': 'dns_soa',
         }
-        
+
         for rtype, key in record_types.items():
             try:
                 answers = self.resolver.resolve(domain, rtype)
@@ -320,7 +318,7 @@ class DNSEnumerator:
                     results[key].add(str(rdata))
             except:
                 pass
-        
+
         return results
 
 class SSLAnalyzer:
@@ -335,30 +333,30 @@ class SSLAnalyzer:
             'ssl_valid_from': None,
             'ssl_valid_to': None,
         }
-        
+
         try:
             context = ssl.create_default_context()
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
-            
+
             with socket.create_connection((domain, port), timeout=5) as sock:
                 with context.wrap_socket(sock, server_hostname=domain) as ssock:
                     cert = ssock.getpeercert()
                     results['ssl_version'] = ssock.version()
                     results['ssl_cipher'] = ssock.cipher()[0]
-                    
+
                     if cert:
                         results['ssl_issuer'] = dict(x[0] for x in cert.get('issuer', []))
                         results['ssl_subject'] = dict(x[0] for x in cert.get('subject', []))
                         results['ssl_valid_from'] = cert.get('notBefore')
                         results['ssl_valid_to'] = cert.get('notAfter')
-                        
+
                         for san in cert.get('subjectAltName', []):
                             if san[0] == 'DNS':
                                 results['ssl_sans'].add(san[1])
         except:
             pass
-        
+
         return results
 
 class WhoisAnalyzer:
@@ -372,22 +370,22 @@ class WhoisAnalyzer:
             'whois_nameservers': set(),
             'whois_emails': set(),
         }
-        
+
         try:
             w = whois.whois(domain)
             results['whois_registrar'] = w.registrar
             results['whois_created'] = str(w.creation_date) if w.creation_date else None
             results['whois_updated'] = str(w.updated_date) if w.updated_date else None
             results['whois_expires'] = str(w.expiration_date) if w.expiration_date else None
-            
+
             if w.name_servers:
                 results['whois_nameservers'].update(w.name_servers if isinstance(w.name_servers, list) else [w.name_servers])
-            
+
             if w.emails:
                 results['whois_emails'].update(w.emails if isinstance(w.emails, list) else [w.emails])
         except:
             pass
-        
+
         return results
 
 class SubdomainBruteforcer:
@@ -396,7 +394,7 @@ class SubdomainBruteforcer:
         self.threads = threads
         self.found = set()
         self.wordlist = self.generate_wordlist()
-    
+
     def generate_wordlist(self):
         common = ['www', 'mail', 'ftp', 'localhost', 'webmail', 'smtp', 'pop', 'ns1', 'webdisk', 
                  'ns2', 'cpanel', 'whm', 'autodiscover', 'autoconfig', 'admin', 'api', 'dev', 
@@ -410,10 +408,10 @@ class SubdomainBruteforcer:
                  'search', 'elasticsearch', 'kibana', 'grafana', 'prometheus',
                  'jenkins', 'gitlab', 'github', 'bitbucket', 'jira', 'confluence', 'nexus', 'artifactory',
                  'monitoring', 'metrics', 'logs', 'alerts', 'status']
-        
+
         prefixes = ['admin', 'test', 'dev', 'staging', 'prod', 'uat', 'qa', 'demo', 'temp', 'old', 'new', 'backup', 'archive']
         suffixes = ['01', '02', '1', '2', 'v1', 'v2', 'new', 'old', 'test', 'prod', 'backup']
-        
+
         wordlist = set(common)
         for word in common[:30]:
             for prefix in prefixes:
@@ -422,9 +420,9 @@ class SubdomainBruteforcer:
             for suffix in suffixes:
                 wordlist.add(f"{word}{suffix}")
                 wordlist.add(f"{word}-{suffix}")
-        
+
         return list(wordlist)
-    
+
     def check_subdomain(self, subdomain):
         try:
             full_domain = f"{subdomain}.{self.domain}"
@@ -432,7 +430,7 @@ class SubdomainBruteforcer:
             return full_domain
         except:
             return None
-    
+
     def bruteforce(self):
         with ThreadPoolExecutor(max_workers=self.threads) as executor:
             futures = {executor.submit(self.check_subdomain, sub): sub for sub in self.wordlist}
@@ -447,9 +445,9 @@ class PortScanner:
     def scan(domain, ports=None):
         if ports is None:
             ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 3306, 3389, 5432, 5900, 6379, 8080, 8443, 8888, 9090, 27017]
-        
+
         results = {'open_ports': set(), 'closed_ports': set()}
-        
+
         for port in ports:
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -462,7 +460,7 @@ class PortScanner:
                 sock.close()
             except:
                 pass
-        
+
         return results
 
 class WebCrawler:
@@ -479,7 +477,7 @@ class WebCrawler:
             'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
             'MinerCad/4.0 (Security Research; +https://github.com/tc4dy)',
         ]
-    
+
     def create_session(self):
         session = requests.Session()
         retry = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
@@ -487,7 +485,7 @@ class WebCrawler:
         session.mount('http://', adapter)
         session.mount('https://', adapter)
         return session
-    
+
     def get_random_headers(self):
         return {
             'User-Agent': random.choice(self.user_agents),
@@ -498,14 +496,14 @@ class WebCrawler:
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1',
         }
-    
+
     def normalize_url(self, url, base_url):
         if not url or url.startswith(('#', 'javascript:', 'mailto:', 'tel:', 'data:')):
             return None
         if url.startswith('http'):
             return url
         return urljoin(base_url, url)
-    
+
     def extract_links(self, content, base_url):
         links = set()
         try:
@@ -520,7 +518,7 @@ class WebCrawler:
         except:
             pass
         return links
-    
+
     def extract_forms(self, content):
         forms = []
         try:
@@ -541,7 +539,7 @@ class WebCrawler:
         except:
             pass
         return forms
-    
+
     def extract_cookies(self, response):
         cookies = {}
         for cookie in response.cookies:
@@ -553,7 +551,7 @@ class WebCrawler:
                 'httponly': hasattr(cookie, 'httponly') and cookie.httponly,
             }
         return cookies
-    
+
     def analyze_headers(self, headers):
         security_headers = {
             'Strict-Transport-Security': 'HSTS',
@@ -564,22 +562,22 @@ class WebCrawler:
             'Referrer-Policy': 'RP',
             'Permissions-Policy': 'PP',
         }
-        
+
         results = {
             'present': [],
             'missing': [],
             'server': headers.get('Server', 'Unknown'),
             'powered_by': headers.get('X-Powered-By', 'Unknown'),
         }
-        
+
         for header, name in security_headers.items():
             if header in headers:
                 results['present'].append(f"{name}: {headers[header]}")
             else:
                 results['missing'].append(name)
-        
+
         return results
-    
+
     def detect_waf(self, headers, content):
         waf_signatures = {
             'Cloudflare': ['cloudflare', 'cf-ray', '__cfduid'],
@@ -592,7 +590,7 @@ class WebCrawler:
             'F5 BIG-IP': ['BigIP', 'F5'],
             'Fortinet': ['fortigate', 'fortiweb'],
         }
-        
+
         detected = set()
         for waf, signatures in waf_signatures.items():
             for sig in signatures:
@@ -600,9 +598,9 @@ class WebCrawler:
                     detected.add(waf)
                 if sig.lower() in content.lower():
                     detected.add(waf)
-        
+
         return detected
-    
+
     def analyze_robots_txt(self, domain):
         results = {'disallowed': set(), 'allowed': set(), 'sitemaps': set()}
         try:
@@ -628,7 +626,7 @@ class WebCrawler:
         except:
             pass
         return results
-    
+
     def analyze_sitemap(self, sitemap_url):
         urls = set()
         try:
@@ -643,7 +641,7 @@ class WebCrawler:
         except:
             pass
         return urls
-    
+
     def fetch(self, url):
         try:
             response = self.session.get(url, 
@@ -652,9 +650,9 @@ class WebCrawler:
                                        verify=False, 
                                        allow_redirects=True)
             self.request_count += 1
-            
+
             time.sleep(self.config['rate_limit'])
-            
+
             return {
                 'content': response.text,
                 'headers': dict(response.headers),
@@ -664,74 +662,74 @@ class WebCrawler:
             }
         except:
             return None
-    
+
     def crawl_url(self, url, depth, base_domain, extractor):
         if depth >= self.config['depth'] or url in self.visited:
             return
-        
+
         with self.lock:
             if url in self.visited:
                 return
             self.visited.add(url)
-        
+
         response_data = self.fetch(url)
         if not response_data:
             return
-        
+
         content = response_data['content']
         headers = response_data['headers']
-        
+
         extracted = extractor.extract_all(content, base_domain)
         with self.lock:
             for key, values in extracted.items():
                 self.results[key].update(values)
-            
+
             self.results['http_headers'].update([f"{k}: {v}" for k, v in headers.items()])
-            
+
             header_analysis = self.analyze_headers(headers)
             self.results['security_headers_present'].update(header_analysis['present'])
             self.results['security_headers_missing'].update(header_analysis['missing'])
             self.results['server_info'].add(header_analysis['server'])
-            
+
             waf = self.detect_waf(headers, content)
             self.results['waf_detected'].update(waf)
-            
+
             forms = self.extract_forms(content)
             for form in forms:
                 form_str = f"{form['method']} {form['action']} - Inputs: {len(form['inputs'])}"
                 self.results['forms'].add(form_str)
-            
+
             for cookie_name, cookie_data in response_data['cookies'].items():
                 cookie_str = f"{cookie_name} (Secure: {cookie_data['secure']}, HttpOnly: {cookie_data['httponly']})"
                 self.results['cookies'].add(cookie_str)
-        
+
         if depth + 1 < self.config['depth']:
             links = self.extract_links(content, url)
             domain_links = [link for link in links if base_domain in link]
-            
+
             with ThreadPoolExecutor(max_workers=self.config['threads']) as executor:
                 futures = [executor.submit(self.crawl_url, link, depth + 1, base_domain, extractor) 
                           for link in domain_links[:50]]
                 for future in as_completed(futures):
                     pass
-    
+
     def crawl(self, start_url, base_domain, lang_manager):
         extractor = PatternExtractor()
-        
-        print(f"\n\033[1;32m[◆]\033[0m {lang_manager.get('deep_crawl')}")
-        
+
+        print(f"\n\033[1;32m[+]\033[0m {lang_manager.get('deep_crawl')}")
+
         if self.config['robots_analysis']:
-            print(f"\033[1;32m[◆]\033[0m Analyzing robots.txt...")
+            print(f"\033[1;32m[+]\033[0m Analyzing robots.txt...")
             robots = self.analyze_robots_txt(base_domain)
             self.results['robots_disallowed'].update(robots['disallowed'])
             self.results['robots_sitemaps'].update(robots['sitemaps'])
-            
+
             for sitemap in list(robots['sitemaps'])[:5]:
                 sitemap_urls = self.analyze_sitemap(sitemap)
                 self.results['sitemap_urls'].update(sitemap_urls)
-        
+
         self.crawl_url(start_url, 0, base_domain, extractor)
-        
+
         return self.results, self.request_count
 
 class JavaScriptAnalyzer:
@@ -743,48 +741,48 @@ class JavaScriptAnalyzer:
             'js_comments': set(),
             'js_functions': set(),
         }
-        
+
         endpoint_patterns = [
             r'["\']/(api|v1|v2|rest|graphql)/[^"\']+["\']',
             r'https?://[^"\']+/api[^"\']*',
         ]
-        
+
         secret_patterns = [
             r'(?i)(api[_-]?key|secret|token|password)["\']?\s*[:=]\s*["\']([^"\']+)["\']',
             r'(?i)(access[_-]?token)["\']?\s*[:=]\s*["\']([^"\']+)["\']',
         ]
-        
+
         for pattern in endpoint_patterns:
             matches = re.findall(pattern, js_content)
             results['js_endpoints'].update([m if isinstance(m, str) else m[0] for m in matches])
-        
+
         for pattern in secret_patterns:
             matches = re.findall(pattern, js_content)
             for match in matches:
                 if isinstance(match, tuple) and len(match) > 1:
                     results['js_secrets'].add(f"{match[0]}: {match[1]}")
-        
+
         comments = re.findall(r'//.*?$|/\*[\s\S]*?\*/', js_content, re.MULTILINE)
         results['js_comments'].update([c.strip() for c in comments if len(c.strip()) > 10][:20])
-        
+
         functions = re.findall(r'function\s+([a-zA-Z0-9_]+)\s*\(', js_content)
         results['js_functions'].update(functions[:30])
-        
+
         return results
 
 class ReportGenerator:
     def __init__(self, lang_manager):
         self.lang = lang_manager
-    
+
     def print_console(self, data, domain, duration, requests):
-        print("\n\n\033[1;35m" + "═" * 100 + "\033[0m")
+        print("\n\n\033[1;35m" + "=" * 100 + "\033[0m")
         print(f"\033[1;35m  {self.lang.get('results')}\033[0m")
         print(f"\033[1;33m  Target: {domain}\033[0m")
         print(f"\033[1;36m  Scan Duration: {duration:.2f}s | Requests: {requests} | Data Points: {sum(len(v) for v in data.values())}\033[0m")
-        print("\033[1;35m" + "═" * 100 + "\033[0m\n")
-        
+        print("\033[1;35m" + "=" * 100 + "\033[0m\n")
+
         categories = {
-            '🔐 CREDENTIALS & SECRETS': {
+            '[+] CREDENTIALS & SECRETS': {
                 'AWS Access Keys': 'aws_keys',
                 'AWS Secrets': 'aws_secret',
                 'Google API Keys': 'google_api',
@@ -809,7 +807,7 @@ class ReportGenerator:
                 'NPM Tokens': 'npm_token',
                 'Docker Tokens': 'docker_token',
             },
-            '💳 SENSITIVE DATA': {
+            '[+] SENSITIVE DATA': {
                 'Credit Cards': 'credit_card',
                 'Environment Variables': 'env_vars',
                 'Database Connections': 'db_connection',
@@ -820,12 +818,12 @@ class ReportGenerator:
                 'SHA256 Hashes': 'hash_sha256',
                 'Base64 Encoded Data': 'base64',
             },
-            '📧 CONTACT INFORMATION': {
+            '[+] CONTACT INFORMATION': {
                 'Email Addresses': 'emails',
                 'Phone Numbers': 'phones',
                 'WHOIS Emails': 'whois_emails',
             },
-            '🌐 NETWORK & INFRASTRUCTURE': {
+            '[+] NETWORK & INFRASTRUCTURE': {
                 'Subdomains': 'subdomains',
                 'IPv4 Addresses': 'ipv4',
                 'IPv6 Addresses': 'ipv6',
@@ -838,12 +836,12 @@ class ReportGenerator:
                 'Open Ports': 'open_ports',
                 'Server Information': 'server_info',
             },
-            '🔒 SSL/TLS & CERTIFICATES': {
+            '[+] SSL/TLS & CERTIFICATES': {
                 'SSL SANs': 'ssl_sans',
                 'SSL Issuer': 'ssl_issuer',
                 'SSL Subject': 'ssl_subject',
             },
-            '🛡️ SECURITY ANALYSIS': {
+            '[+] SECURITY ANALYSIS': {
                 'WAF Detected': 'waf_detected',
                 'SQL Injection Errors': 'sql_error',
                 'XSS Vulnerabilities': 'xss_vulnerable',
@@ -854,13 +852,13 @@ class ReportGenerator:
                 'Security Headers Present': 'security_headers_present',
                 'Security Headers Missing': 'security_headers_missing',
             },
-            '🔌 API & ENDPOINTS': {
+            '[+] API & ENDPOINTS': {
                 'API Endpoints': 'api_endpoints',
                 'GraphQL Endpoints': 'api_graphql',
                 'REST APIs': 'api_rest',
                 'JS API Endpoints': 'js_endpoints',
             },
-            '📱 SOCIAL MEDIA': {
+            '[+] SOCIAL MEDIA': {
                 'Twitter Profiles': 'social_twitter',
                 'Facebook Pages': 'social_facebook',
                 'LinkedIn Profiles': 'social_linkedin',
@@ -869,15 +867,15 @@ class ReportGenerator:
                 'YouTube Channels': 'social_youtube',
                 'WhatsApp Groups': 'whatsapp',
             },
-            '☁️ CLOUD SERVICES': {
+            '[+] CLOUD SERVICES': {
                 'AWS S3 Buckets': 's3_bucket',
                 'Azure Storage': 'azure_storage',
                 'Google Cloud Storage': 'google_cloud',
             },
-            '🧬 TECHNOLOGIES DETECTED': {
+            '[+] TECHNOLOGIES DETECTED': {
                 'Tech Stack': 'technologies',
             },
-            '📂 FILES DISCOVERED': {
+            '[+] FILES DISCOVERED': {
                 'PDF Documents': 'file_pdf',
                 'Word Documents': 'file_doc',
                 'Excel Spreadsheets': 'file_xls',
@@ -896,7 +894,7 @@ class ReportGenerator:
                 'VPN Files': 'files_vpn',
                 'Git Files': 'files_git',
             },
-            '🔍 WEB ANALYSIS': {
+            '[+] WEB ANALYSIS': {
                 'HTML Forms': 'forms',
                 'Cookies Found': 'cookies',
                 'Robots.txt Disallowed': 'robots_disallowed',
@@ -905,7 +903,7 @@ class ReportGenerator:
                 'JS Comments': 'js_comments',
                 'JS Functions': 'js_functions',
             },
-            '📊 WHOIS INFORMATION': {
+            '[+] WHOIS INFORMATION': {
                 'Registrar': 'whois_registrar',
                 'Name Servers': 'whois_nameservers',
                 'Created Date': 'whois_created',
@@ -913,36 +911,36 @@ class ReportGenerator:
                 'Expires Date': 'whois_expires',
             },
         }
-        
+
         for section, items in categories.items():
             print(f"\n\033[1;36m{section}\033[0m")
-            print("\033[1;35m" + "─" * 100 + "\033[0m")
-            
+            print("\033[1;35m" + "-" * 100 + "\033[0m")
+
             section_has_data = False
             for category, key in items.items():
                 values = data.get(key, set())
                 if values:
                     section_has_data = True
                     print(f"\033[1;33m{category}\033[0m ({len(values)} items):")
-                    
+
                     if isinstance(values, set):
                         for i, item in enumerate(sorted(list(values))[:15]):
-                            print(f"  \033[0;32m→\033[0m {item}")
+                            print(f"  \033[0;32m[>]\033[0m {item}")
                         if len(values) > 15:
                             print(f"  \033[0;90m... and {len(values) - 15} more items\033[0m")
                     else:
-                        print(f"  \033[0;32m→\033[0m {values}")
+                        print(f"  \033[0;32m[>]\033[0m {values}")
                     print()
-            
+
             if not section_has_data:
                 print(f"  \033[0;90mNo data found in this category\033[0m\n")
-        
-        print("\033[1;35m" + "═" * 100 + "\033[0m")
-        print(f"\033[1;32m✓ {self.lang.get('complete')}\033[0m")
+
+        print("\033[1;35m" + "=" * 100 + "\033[0m")
+        print(f"\033[1;32m[+] {self.lang.get('complete')}\033[0m")
         print(f"\033[1;36m  {self.lang.get('duration')}: {duration:.2f}s | {self.lang.get('requests')}: {requests}\033[0m")
         print(f"\033[1;36m  {self.lang.get('data_points')}: {sum(len(v) if isinstance(v, (set, list)) else 1 for v in data.values())}\033[0m")
-        print("\033[1;35m" + "═" * 100 + "\033[0m")
-    
+        print("\033[1;35m" + "=" * 100 + "\033[0m")
+
     def export_json(self, data, filename, domain, duration, requests):
         serializable = {}
         for k, v in data.items():
@@ -952,7 +950,7 @@ class ReportGenerator:
                 serializable[k] = {sk: list(sv) if isinstance(sv, set) else sv for sk, sv in v.items()}
             else:
                 serializable[k] = v
-        
+
         report = {
             'metadata': {
                 'target': domain,
@@ -965,10 +963,10 @@ class ReportGenerator:
             },
             'data': serializable
         }
-        
+
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
-    
+
     def export_html(self, data, filename, domain, duration, requests):
         html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -998,7 +996,7 @@ class ReportGenerator:
 </head>
 <body>
     <div class="container">
-        <h1>🔍 MinerCad OSINT Report</h1>
+        <h1>[+] MinerCad OSINT Report</h1>
         <div class="meta">
             <span><strong>Target:</strong> {domain}</span>
             <span><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</span>
@@ -1018,9 +1016,9 @@ class ReportGenerator:
             </div>
         </div>
         """
-        
+
         categories = {
-            '🔐 CREDENTIALS & SECRETS': {
+            '[+] CREDENTIALS & SECRETS': {
                 'AWS Access Keys': 'aws_keys',
                 'AWS Secrets': 'aws_secret',
                 'Google API Keys': 'google_api',
@@ -1045,7 +1043,7 @@ class ReportGenerator:
                 'NPM Tokens': 'npm_token',
                 'Docker Tokens': 'docker_token',
             },
-            '💳 SENSITIVE DATA': {
+            '[+] SENSITIVE DATA': {
                 'Credit Cards': 'credit_card',
                 'Environment Variables': 'env_vars',
                 'Database Connections': 'db_connection',
@@ -1056,12 +1054,12 @@ class ReportGenerator:
                 'SHA256 Hashes': 'hash_sha256',
                 'Base64 Encoded Data': 'base64',
             },
-            '📧 CONTACT INFORMATION': {
+            '[+] CONTACT INFORMATION': {
                 'Email Addresses': 'emails',
                 'Phone Numbers': 'phones',
                 'WHOIS Emails': 'whois_emails',
             },
-            '🌐 NETWORK & INFRASTRUCTURE': {
+            '[+] NETWORK & INFRASTRUCTURE': {
                 'Subdomains': 'subdomains',
                 'IPv4 Addresses': 'ipv4',
                 'IPv6 Addresses': 'ipv6',
@@ -1074,12 +1072,12 @@ class ReportGenerator:
                 'Open Ports': 'open_ports',
                 'Server Information': 'server_info',
             },
-            '🔒 SSL/TLS & CERTIFICATES': {
+            '[+] SSL/TLS & CERTIFICATES': {
                 'SSL SANs': 'ssl_sans',
                 'SSL Issuer': 'ssl_issuer',
                 'SSL Subject': 'ssl_subject',
             },
-            '🛡️ SECURITY ANALYSIS': {
+            '[+] SECURITY ANALYSIS': {
                 'WAF Detected': 'waf_detected',
                 'SQL Injection Errors': 'sql_error',
                 'XSS Vulnerabilities': 'xss_vulnerable',
@@ -1090,13 +1088,13 @@ class ReportGenerator:
                 'Security Headers Present': 'security_headers_present',
                 'Security Headers Missing': 'security_headers_missing',
             },
-            '🔌 API & ENDPOINTS': {
+            '[+] API & ENDPOINTS': {
                 'API Endpoints': 'api_endpoints',
                 'GraphQL Endpoints': 'api_graphql',
                 'REST APIs': 'api_rest',
                 'JS API Endpoints': 'js_endpoints',
             },
-            '📱 SOCIAL MEDIA': {
+            '[+] SOCIAL MEDIA': {
                 'Twitter Profiles': 'social_twitter',
                 'Facebook Pages': 'social_facebook',
                 'LinkedIn Profiles': 'social_linkedin',
@@ -1105,15 +1103,15 @@ class ReportGenerator:
                 'YouTube Channels': 'social_youtube',
                 'WhatsApp Groups': 'whatsapp',
             },
-            '☁️ CLOUD SERVICES': {
+            '[+] CLOUD SERVICES': {
                 'AWS S3 Buckets': 's3_bucket',
                 'Azure Storage': 'azure_storage',
                 'Google Cloud Storage': 'google_cloud',
             },
-            '🧬 TECHNOLOGIES DETECTED': {
+            '[+] TECHNOLOGIES DETECTED': {
                 'Tech Stack': 'technologies',
             },
-            '📂 FILES DISCOVERED': {
+            '[+] FILES DISCOVERED': {
                 'PDF Documents': 'file_pdf',
                 'Word Documents': 'file_doc',
                 'Excel Spreadsheets': 'file_xls',
@@ -1132,7 +1130,7 @@ class ReportGenerator:
                 'VPN Files': 'files_vpn',
                 'Git Files': 'files_git',
             },
-            '🔍 WEB ANALYSIS': {
+            '[+] WEB ANALYSIS': {
                 'HTML Forms': 'forms',
                 'Cookies Found': 'cookies',
                 'Robots.txt Disallowed': 'robots_disallowed',
@@ -1141,7 +1139,7 @@ class ReportGenerator:
                 'JS Comments': 'js_comments',
                 'JS Functions': 'js_functions',
             },
-            '📊 WHOIS INFORMATION': {
+            '[+] WHOIS INFORMATION': {
                 'Registrar': 'whois_registrar',
                 'Name Servers': 'whois_nameservers',
                 'Created Date': 'whois_created',
@@ -1149,16 +1147,16 @@ class ReportGenerator:
                 'Expires Date': 'whois_expires',
             },
         }
-        
+
         for section, items in categories.items():
             html += f'<div class="section"><h2 class="section-title">{section}</h2>'
-            
+
             for category, key in items.items():
                 values = data.get(key, set())
                 if values:
                     count = len(values) if isinstance(values, (set, list)) else 1
                     html += f'<div class="category"><div class="category-title">{category} <span class="count">({count})</span></div>'
-                    
+
                     if isinstance(values, (set, list)):
                         for item in sorted(list(values))[:100]:
                             html += f'<div class="item">{str(item)}</div>'
@@ -1166,11 +1164,11 @@ class ReportGenerator:
                             html += f'<div class="item" style="color: #888; font-style: italic;">... and {len(values) - 100} more items</div>'
                     else:
                         html += f'<div class="item">{str(values)}</div>'
-                    
+
                     html += '</div>'
-            
+
             html += '</div>'
-        
+
         html += f"""
         <div class="footer">
             <p><strong>MinerCad Ultimate v4.0</strong> - AI-Powered Deep Intelligence Engine</p>
@@ -1180,10 +1178,10 @@ class ReportGenerator:
     </div>
 </body>
 </html>"""
-        
+
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(html)
-    
+
     def export_xml(self, data, filename, domain, duration, requests):
         xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <osint_report>
@@ -1198,10 +1196,10 @@ class ReportGenerator:
     </metadata>
     <data>
 """
-        
+
         for key, values in data.items():
             xml += f'    <{key}>\n'
-            
+
             if isinstance(values, (set, list)):
                 for item in sorted(list(values)):
                     item_escaped = str(item).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&apos;')
@@ -1214,22 +1212,22 @@ class ReportGenerator:
             else:
                 value_escaped = str(values).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
                 xml += f'        <value>{value_escaped}</value>\n'
-            
+
             xml += f'    </{key}>\n'
-        
+
         xml += """    </data>
 </osint_report>"""
-        
+
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(xml)
-    
+
     def print_statistics(self, data):
-        print(f"\n\033[1;35m{'═' * 100}\033[0m")
+        print(f"\n\033[1;35m{'=' * 100}\033[0m")
         print(f"\033[1;35m  {self.lang.get('stats')}\033[0m")
-        print(f"\033[1;35m{'═' * 100}\033[0m\n")
-        
+        print(f"\033[1;35m{'=' * 100}\033[0m\n")
+
         total_items = sum(len(v) if isinstance(v, (set, list)) else 1 for v in data.values())
-        
+
         stats = [
             ('Total Data Categories', len([k for k, v in data.items() if v])),
             ('Total Data Points', total_items),
@@ -1246,13 +1244,13 @@ class ReportGenerator:
             ('Social Media Links', sum(len(data.get(k, set())) for k in data.keys() if k.startswith('social_'))),
             ('Cloud Storage', sum(len(data.get(k, set())) for k in ['s3_bucket', 'azure_storage', 'google_cloud'])),
         ]
-        
+
         for label, count in stats:
             bar_length = int((count / max(total_items, 1)) * 50)
-            bar = '█' * bar_length + '░' * (50 - bar_length)
+            bar = '#' * bar_length + '-' * (50 - bar_length)
             print(f"\033[1;33m{label:.<40}\033[0m \033[1;36m{count:>6}\033[0m \033[0;32m{bar}\033[0m")
-        
-        print(f"\n\033[1;35m{'═' * 100}\033[0m")
+
+        print(f"\n\033[1;35m{'=' * 100}\033[0m")
 
 class MinerCad:
     def __init__(self):
@@ -1264,10 +1262,10 @@ class MinerCad:
         self.start_time = None
         self.duration = 0
         self.request_count = 0
-    
+
     def banner(self):
         banner = f"""
-\033[1;35m{'═' * 100}\033[0m
+\033[1;35m{'=' * 100}\033[0m
 \033[1;36m
   ███╗   ███╗██╗███╗   ██╗███████╗██████╗  ██████╗ █████╗ ██████╗ 
   ████╗ ████║██║████╗  ██║██╔════╝██╔══██╗██╔════╝██╔══██╗██╔══██╗
@@ -1279,86 +1277,79 @@ class MinerCad:
 \033[1;33m            ULTIMATE TACTICAL RECONNAISSANCE FRAMEWORK\033[0m
 \033[1;32m            Version 4.0.0 - MinerCad Ultimate\033[0m
 \033[1;31m            Developed by @tc4dy - Educational and Research Tool\033[0m
-\033[1;35m{'═' * 100}\033[0m
+\033[1;35m{'=' * 100}\033[0m
 """
         print(banner)
-    
+
     def select_language(self):
         choice = input(self.lang_manager.get('lang_select'))
         self.lang_manager.set_language(1 if choice == '1' else 2)
-    
+
     def get_target(self):
         self.domain = input(f"\n\033[1;33m{self.lang_manager.get('target')}\033[0m").strip()
         if self.domain.startswith(('http://', 'https://')):
             self.domain = urlparse(self.domain).netloc
         return self.domain
-    
+
     def run_scan(self):
         self.start_time = time.time()
-        
-        print(f"\n\033[1;32m[◆]\033[0m {self.lang_manager.get('ai_config')}")
+
+        print(f"\n\033[1;32m[+]\033[0m {self.lang_manager.get('ai_config')}")
         config = AIConfigManager.calculate_optimal_params(self.domain)
         time.sleep(1)
-        
-        print(f"\n\033[1;35m{'═' * 100}\033[0m")
+
+        print(f"\n\033[1;35m{'=' * 100}\033[0m")
         print(f"\033[1;36mSTARTING COMPREHENSIVE OSINT SCAN ON: {self.domain}\033[0m")
-        print(f"\033[1;35m{'═' * 100}\033[0m")
-        
-        # DNS Enumeration
+        print(f"\033[1;35m{'=' * 100}\033[0m")
+
         if config['dns_enumeration']:
-            print(f"\n\033[1;32m[◆]\033[0m {self.lang_manager.get('dns_enum')}")
+            print(f"\n\033[1;32m[+]\033[0m {self.lang_manager.get('dns_enum')}")
             dns_enum = DNSEnumerator()
             dns_results = dns_enum.enumerate(self.domain)
             for key, values in dns_results.items():
                 self.data[key].update(values)
-        
-        # WHOIS Lookup
+
         if config['whois_lookup']:
-            print(f"\033[1;32m[◆]\033[0m {self.lang_manager.get('whois_lookup')}")
+            print(f"\033[1;32m[+]\033[0m {self.lang_manager.get('whois_lookup')}")
             whois_results = WhoisAnalyzer.analyze(self.domain)
             for key, value in whois_results.items():
                 if isinstance(value, set):
                     self.data[key].update(value)
                 elif value:
                     self.data[key] = value
-        
-        # SSL Analysis
+
         if config['ssl_analysis_enabled']:
-            print(f"\033[1;32m[◆]\033[0m {self.lang_manager.get('ssl_analysis')}")
+            print(f"\033[1;32m[+]\033[0m {self.lang_manager.get('ssl_analysis')}")
             ssl_results = SSLAnalyzer.analyze(self.domain)
             for key, value in ssl_results.items():
                 if isinstance(value, set):
                     self.data[key].update(value)
                 elif value:
                     self.data[key] = value
-        
-        # Port Scanning
+
         if config['port_scan_enabled']:
-            print(f"\033[1;32m[◆]\033[0m {self.lang_manager.get('port_scan')}")
+            print(f"\033[1;32m[+]\033[0m {self.lang_manager.get('port_scan')}")
             port_results = PortScanner.scan(self.domain)
             for key, values in port_results.items():
                 self.data[key].update(values)
-        
-        # Subdomain Bruteforce
+
         if config['bruteforce_subdomains']:
-            print(f"\033[1;32m[◆]\033[0m {self.lang_manager.get('subdomain_brute')}")
+            print(f"\033[1;32m[+]\033[0m {self.lang_manager.get('subdomain_brute')}")
             bruteforcer = SubdomainBruteforcer(self.domain, threads=config['threads'])
             subdomains = bruteforcer.bruteforce()
             self.data['subdomains'].update(subdomains)
-        
-        # Web Crawling
-        print(f"\n\033[1;32m[◆]\033[0m {self.lang_manager.get('tech_fingerprint')}")
+
+        print(f"\n\033[1;32m[+]\033[0m {self.lang_manager.get('tech_fingerprint')}")
         crawler = WebCrawler(config)
         start_url = f"https://{self.domain}"
         crawl_results, request_count = crawler.crawl(start_url, self.domain, self.lang_manager)
         self.request_count = request_count
-        
+
         for key, values in crawl_results.items():
             self.data[key].update(values)
-        
-        # JavaScript Analysis
+
         if config['js_analysis_enabled']:
-            print(f"\033[1;32m[◆]\033[0m {self.lang_manager.get('js_analysis')}")
+            print(f"\033[1;32m[+]\033[0m {self.lang_manager.get('js_analysis')}")
             for url in list(self.data.get('urls', set()))[:20]:
                 if url.endswith('.js'):
                     try:
@@ -1369,45 +1360,45 @@ class MinerCad:
                                 self.data[key].update(values)
                     except:
                         pass
-        
+
         self.duration = time.time() - self.start_time
-    
+
     def show_menu(self):
         report_gen = ReportGenerator(self.lang_manager)
         report_gen.print_console(self.data, self.domain, self.duration, self.request_count)
-        
+
         while True:
             choice = input(self.lang_manager.get('menu'))
-            
+
             if choice == '1':
                 self.data = defaultdict(set)
                 self.get_target()
                 self.run_scan()
                 report_gen.print_console(self.data, self.domain, self.duration, self.request_count)
-            
+
             elif choice == '2':
                 filename = f"minercad_{self.domain}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
                 report_gen.export_json(self.data, filename, self.domain, self.duration, self.request_count)
-                print(f"\n\033[1;32m✓ {self.lang_manager.get('exported')}\033[0m {filename}")
-            
+                print(f"\n\033[1;32m[+] {self.lang_manager.get('exported')}\033[0m {filename}")
+
             elif choice == '3':
                 filename = f"minercad_{self.domain}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
                 report_gen.export_html(self.data, filename, self.domain, self.duration, self.request_count)
-                print(f"\n\033[1;32m✓ {self.lang_manager.get('exported')}\033[0m {filename}")
-            
+                print(f"\n\033[1;32m[+] {self.lang_manager.get('exported')}\033[0m {filename}")
+
             elif choice == '4':
                 filename = f"minercad_{self.domain}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xml"
                 report_gen.export_xml(self.data, filename, self.domain, self.duration, self.request_count)
-                print(f"\n\033[1;32m✓ {self.lang_manager.get('exported')}\033[0m {filename}")
-            
+                print(f"\n\033[1;32m[+] {self.lang_manager.get('exported')}\033[0m {filename}")
+
             elif choice == '5':
                 report_gen.print_statistics(self.data)
-            
+
             elif choice == '6':
-                print("\n\033[1;35m" + "═" * 100 + "\033[0m")
+                print("\n\033[1;35m" + "=" * 100 + "\033[0m")
                 print("\033[1;36mThank you for using MinerCad Ultimate v4.0!\033[0m")
                 print("\033[1;32mDeveloped by @tc4dy | Educational and Research Tool\033[0m")
-                print("\033[1;35m" + "═" * 100 + "\033[0m\n")
+                print("\033[1;35m" + "=" * 100 + "\033[0m\n")
                 sys.exit(0)
 
 def main():
